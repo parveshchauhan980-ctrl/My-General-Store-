@@ -1,0 +1,6 @@
+{
+  "name": "My General Store",
+  "description": "Full-stack Indian General Store & Kirana Management System with Customer storefront and Admin panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

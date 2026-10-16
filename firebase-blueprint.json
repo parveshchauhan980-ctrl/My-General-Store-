@@ -1,0 +1,146 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role-based access control and delivery address",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "phoneNumber": { "type": "string", "maxLength": 20 },
+        "role": { "type": "string", "enum": ["customer", "admin"] },
+        "address": { "type": "object" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized store backoffice administrator",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin"] },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Indian grocery store product SKU",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 150 },
+        "hindiName": { "type": "string", "maxLength": 150 },
+        "brand": { "type": "string", "maxLength": 100 },
+        "categoryId": { "type": "string" },
+        "categoryName": { "type": "string" },
+        "description": { "type": "string", "maxLength": 1000 },
+        "mrp": { "type": "number" },
+        "price": { "type": "number" },
+        "unit": { "type": "string", "maxLength": 50 },
+        "stock": { "type": "number" },
+        "minStockAlert": { "type": "number" },
+        "inStock": { "type": "boolean" },
+        "image": { "type": "string" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" }
+      },
+      "required": ["id", "name", "price", "stock", "unit", "categoryId"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Grocery store product department / aisle",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "hindiName": { "type": "string", "maxLength": 100 },
+        "slug": { "type": "string" },
+        "image": { "type": "string" },
+        "description": { "type": "string", "maxLength": 500 },
+        "itemCount": { "type": "number" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "name", "slug"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "deliveryAddress": { "type": "object" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "tax": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "discount": { "type": "number" },
+        "total": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["cod", "upi", "card", "netbanking"] },
+        "paymentStatus": { "type": "string", "enum": ["pending", "verified", "failed", "rejected", "refunded"] },
+        "orderStatus": { "type": "string", "enum": ["placed", "confirmed", "packing", "out_for_delivery", "delivered", "cancelled"] },
+        "paymentTransactionId": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "orderNumber", "customerId", "items", "total", "orderStatus", "paymentMethod"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Payment verification record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderId": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "transactionReference": { "type": "string" },
+        "status": { "type": "string" },
+        "verifiedBy": { "type": "string" },
+        "verifiedAt": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "orderId", "amount", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Customer profiles restricted to owner and admin"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Secure list of verified store administrator UIDs"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Public read catalog, admin-only write"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Public read grocery categories, admin-only write"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders visible to creator customer and admin"
+    },
+    "/payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Payments visible to creator and verified by admin"
+    }
+  }
+}
