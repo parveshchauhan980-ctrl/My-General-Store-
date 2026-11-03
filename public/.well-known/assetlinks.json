@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mygeneralstore.kirana",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:66:35:E1:1B:54:3E:9B:F7:8E:A4:44:E6:37:A2:AE:AC:5B:14:1C:8D:DE:93:37:37:7B:A0:6B:43"
+      ]
+    }
+  }
+]

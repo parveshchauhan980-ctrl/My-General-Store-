@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#064e3b" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background with rounded corners for maskable padding -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Bag Body -->
+  <g filter="url(#shadow)" transform="translate(0, 10)">
+    <!-- Bag Handle -->
+    <path d="M 196 170 C 196 110, 316 110, 316 170" fill="none" stroke="#a7f3d0" stroke-width="26" stroke-linecap="round" />
+    
+    <!-- Main Bag -->
+    <path d="M 136 170 L 376 170 L 396 390 C 396 414, 380 430, 356 430 L 156 430 C 132 430, 116 414, 116 390 Z" fill="#ffffff" />
+    
+    <!-- Bag Fold Highlight -->
+    <path d="M 136 170 L 376 170 L 366 210 L 146 210 Z" fill="#ecfdf5" />
+
+    <!-- Center Kirana Emblem: Wheat/Grain Stalk -->
+    <path d="M 256 220 L 256 360" stroke="#059669" stroke-width="8" stroke-linecap="round" />
+    <!-- Wheat grains left -->
+    <path d="M 256 240 C 236 230, 226 250, 246 260 Z" fill="url(#goldGrad)" />
+    <path d="M 256 270 C 236 260, 226 280, 246 290 Z" fill="url(#goldGrad)" />
+    <path d="M 256 300 C 236 290, 226 310, 246 320 Z" fill="url(#goldGrad)" />
+    <!-- Wheat grains right -->
+    <path d="M 256 240 C 276 230, 286 250, 266 260 Z" fill="url(#goldGrad)" />
+    <path d="M 256 270 C 276 260, 286 280, 266 290 Z" fill="url(#goldGrad)" />
+    <path d="M 256 300 C 276 290, 286 310, 266 320 Z" fill="url(#goldGrad)" />
+    <!-- Top seed -->
+    <path d="M 256 225 C 248 210, 264 210, 256 225 Z" fill="url(#goldGrad)" />
+  </g>
+
+  <!-- Accent sparkles -->
+  <circle cx="110" cy="110" r="10" fill="#fef08a" opacity="0.8" />
+  <circle cx="410" cy="120" r="14" fill="#fef08a" opacity="0.9" />
+</svg>

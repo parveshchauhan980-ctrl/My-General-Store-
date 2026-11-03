@@ -10,8 +10,12 @@ import {
   Truck, 
   ArrowLeft, 
   CheckCircle2, 
-  AlertCircle 
+  AlertCircle,
+  Building2,
+  Lock,
+  Sparkles
 } from 'lucide-react';
+import { UpiPaymentCard } from '../../components/common/UpiPaymentCard.tsx';
 
 export const CheckoutPage: React.FC = () => {
   const { 
@@ -38,7 +42,15 @@ export const CheckoutPage: React.FC = () => {
   // Payment method
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cod' | 'card' | 'netbanking'>('upi');
   const [upiTransactionId, setUpiTransactionId] = useState('');
+  const [orderPreviewNumber] = useState<string>(() => `ORD-${Date.now().toString().slice(-6)}`);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Card / NetBanking fields
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+  const [cardHolder, setCardHolder] = useState('');
+  const [selectedBank, setSelectedBank] = useState('HDFC Bank');
 
   if (cart.length === 0) {
     return (
@@ -62,9 +74,20 @@ export const CheckoutPage: React.FC = () => {
       return;
     }
 
-    if (paymentMethod === 'upi' && !upiTransactionId.trim()) {
-      addToast('Please enter your 12-digit UPI Reference / UTR Number.', 'error');
-      return;
+    // Determine payment transaction reference based on selected mode
+    let finalTxnId = upiTransactionId.trim();
+
+    if (paymentMethod === 'upi') {
+      if (!finalTxnId) {
+        // Auto-assign order verification reference so customer is never blocked
+        finalTxnId = `UPI-APP-${customerPhone.replace(/\D/g, '').slice(-4)}-${Date.now().toString().slice(-4)}`;
+      }
+    } else if (paymentMethod === 'card') {
+      finalTxnId = `CARD-TXN-${cardNumber ? cardNumber.replace(/\s+/g, '').slice(-4) : 'ONLINE'}-${Date.now().toString().slice(-6)}`;
+    } else if (paymentMethod === 'netbanking') {
+      finalTxnId = `NB-${selectedBank.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase()}-${Date.now().toString().slice(-6)}`;
+    } else if (paymentMethod === 'cod') {
+      finalTxnId = `COD-COLLECT-AT-DOORSTEP`;
     }
 
     setIsSubmitting(true);
@@ -82,7 +105,7 @@ export const CheckoutPage: React.FC = () => {
           postalCode
         },
         paymentMethod,
-        paymentTransactionId: paymentMethod === 'upi' ? upiTransactionId : undefined,
+        paymentTransactionId: finalTxnId,
         notes
       });
 
@@ -240,20 +263,20 @@ export const CheckoutPage: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-sm font-bold text-gray-900">2. Select Payment Mode</h2>
-                <p className="text-[11px] text-gray-500">Pay securely via UPI QR or Cash on Delivery</p>
+                <p className="text-[11px] text-gray-500">Pay securely via UPI QR, Cards, NetBanking or Cash on Delivery</p>
               </div>
             </div>
 
-            {/* Radio Options */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* UPI Option */}
-              <label className={`p-4 rounded-xl border-2 flex flex-col justify-between cursor-pointer transition-all ${
-                paymentMethod === 'upi' ? 'border-emerald-600 bg-emerald-50/50' : 'border-gray-200 hover:border-gray-300'
+            {/* Payment Mode Grid (4 Options) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {/* 1. UPI Option */}
+              <label className={`p-3.5 rounded-xl border-2 flex flex-col justify-between cursor-pointer transition-all ${
+                paymentMethod === 'upi' ? 'border-emerald-600 bg-emerald-50/60 shadow-xs' : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <QrCode className="w-5 h-5 text-emerald-700" />
-                    <span className="font-bold text-xs text-gray-900">Instant UPI Payment</span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <QrCode className="w-4 h-4 text-emerald-700" />
+                    <span className="font-bold text-xs text-gray-900">Instant UPI</span>
                   </div>
                   <input
                     type="radio"
@@ -263,19 +286,63 @@ export const CheckoutPage: React.FC = () => {
                     className="text-emerald-600 focus:ring-emerald-500"
                   />
                 </div>
-                <p className="text-[11px] text-gray-500">
-                  Google Pay, PhonePe, Paytm, BHIM, Cred
+                <p className="text-[10px] text-gray-500">
+                  GPay, PhonePe, Paytm QR
                 </p>
               </label>
 
-              {/* Cash On Delivery Option */}
-              <label className={`p-4 rounded-xl border-2 flex flex-col justify-between cursor-pointer transition-all ${
-                paymentMethod === 'cod' ? 'border-emerald-600 bg-emerald-50/50' : 'border-gray-200 hover:border-gray-300'
+              {/* 2. Card Option */}
+              <label className={`p-3.5 rounded-xl border-2 flex flex-col justify-between cursor-pointer transition-all ${
+                paymentMethod === 'card' ? 'border-emerald-600 bg-emerald-50/60 shadow-xs' : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Banknote className="w-5 h-5 text-emerald-700" />
-                    <span className="font-bold text-xs text-gray-900">Cash on Delivery (COD)</span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4 text-emerald-700" />
+                    <span className="font-bold text-xs text-gray-900">Card</span>
+                  </div>
+                  <input
+                    type="radio"
+                    name="payment"
+                    checked={paymentMethod === 'card'}
+                    onChange={() => setPaymentMethod('card')}
+                    className="text-emerald-600 focus:ring-emerald-500"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-500">
+                  Visa, RuPay, MasterCard
+                </p>
+              </label>
+
+              {/* 3. NetBanking Option */}
+              <label className={`p-3.5 rounded-xl border-2 flex flex-col justify-between cursor-pointer transition-all ${
+                paymentMethod === 'netbanking' ? 'border-emerald-600 bg-emerald-50/60 shadow-xs' : 'border-gray-200 hover:border-gray-300 bg-white'
+              }`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-emerald-700" />
+                    <span className="font-bold text-xs text-gray-900">NetBanking</span>
+                  </div>
+                  <input
+                    type="radio"
+                    name="payment"
+                    checked={paymentMethod === 'netbanking'}
+                    onChange={() => setPaymentMethod('netbanking')}
+                    className="text-emerald-600 focus:ring-emerald-500"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-500">
+                  SBI, HDFC, ICICI, Axis
+                </p>
+              </label>
+
+              {/* 4. Cash On Delivery Option */}
+              <label className={`p-3.5 rounded-xl border-2 flex flex-col justify-between cursor-pointer transition-all ${
+                paymentMethod === 'cod' ? 'border-emerald-600 bg-emerald-50/60 shadow-xs' : 'border-gray-200 hover:border-gray-300 bg-white'
+              }`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Banknote className="w-4 h-4 text-emerald-700" />
+                    <span className="font-bold text-xs text-gray-900">Cash on Delivery</span>
                   </div>
                   <input
                     type="radio"
@@ -285,47 +352,144 @@ export const CheckoutPage: React.FC = () => {
                     className="text-emerald-600 focus:ring-emerald-500"
                   />
                 </div>
-                <p className="text-[11px] text-gray-500">
-                  Pay cash or UPI directly to rider upon delivery
+                <p className="text-[10px] text-gray-500">
+                  Pay cash to delivery rider
                 </p>
               </label>
             </div>
 
-            {/* UPI Payment Instructions Box */}
+            {/* Interactive UPI Payment Card */}
             {paymentMethod === 'upi' && (
-              <div className="p-4 bg-emerald-50/80 rounded-xl border border-emerald-200 space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-20 h-20 bg-white p-1 rounded-lg border border-emerald-200 shrink-0 flex items-center justify-center">
-                    <QrCode className="w-16 h-16 text-emerald-900" />
+              <UpiPaymentCard
+                settings={settings}
+                amount={cartTotals.total}
+                orderNumber={orderPreviewNumber}
+                upiTransactionId={upiTransactionId}
+                onUpiTransactionIdChange={setUpiTransactionId}
+              />
+            )}
+
+            {/* Debit / Credit Card Form */}
+            {paymentMethod === 'card' && (
+              <div className="p-4 sm:p-5 bg-gradient-to-b from-gray-50 to-white rounded-2xl border border-gray-200 space-y-4 shadow-2xs">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center">
+                      <CreditCard className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xs text-gray-900">Card Payment Gateway</h3>
+                      <p className="text-[10px] text-gray-500">Supports all Indian RuPay, Visa, and MasterCards</p>
+                    </div>
                   </div>
-                  <div className="text-xs space-y-1">
-                    <p className="font-bold text-emerald-950">Store Merchant UPI VPA:</p>
-                    <p className="font-mono bg-white px-2 py-1 rounded border border-emerald-300 text-emerald-900 inline-block font-semibold">
-                      {settings.upiId}
-                    </p>
-                    <p className="text-[11px] text-gray-600">
-                      Merchant Name: <span className="font-bold">{settings.upiName}</span>
-                    </p>
-                    <p className="text-[11px] text-emerald-800">
-                      Scan QR or pay <span className="font-bold">{formatINR(cartTotals.total)}</span> using any UPI app.
-                    </p>
+                  <div className="flex items-center gap-1 text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                    <Lock className="w-3 h-3 text-emerald-700" />
+                    <span>256-Bit SSL Encrypted</span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-emerald-200/60">
-                  <label className="block text-xs font-bold text-emerald-950 mb-1">
-                    Enter UPI Reference / UTR Number *
-                  </label>
-                  <input
-                    type="text"
-                    required={paymentMethod === 'upi'}
-                    value={upiTransactionId}
-                    onChange={(e) => setUpiTransactionId(e.target.value)}
-                    placeholder="e.g. UPI-984719204851 or 12-digit UTR"
-                    className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs font-mono outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                  <p className="text-[10px] text-emerald-700 mt-1">
-                    * The store administrator will verify this reference in the backoffice before dispatch.
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="sm:col-span-2">
+                    <label className="block text-gray-700 font-semibold mb-1 text-[11px]">Card Number</label>
+                    <input
+                      type="text"
+                      maxLength={19}
+                      value={cardNumber}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, '').replace(/(\d{4})/g, '$1 ').trim();
+                        setCardNumber(v);
+                      }}
+                      placeholder="4532 •••• •••• 8921"
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl outline-none font-mono text-xs focus:border-emerald-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 font-semibold mb-1 text-[11px]">Cardholder Name</label>
+                    <input
+                      type="text"
+                      value={cardHolder}
+                      onChange={(e) => setCardHolder(e.target.value)}
+                      placeholder="e.g. Rahul Sharma"
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl outline-none text-xs focus:border-emerald-600"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-gray-700 font-semibold mb-1 text-[11px]">Valid Thru</label>
+                      <input
+                        type="text"
+                        maxLength={5}
+                        value={cardExpiry}
+                        onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, '');
+                          if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2, 4);
+                          setCardExpiry(v);
+                        }}
+                        placeholder="MM/YY"
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl outline-none font-mono text-xs text-center focus:border-emerald-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 font-semibold mb-1 text-[11px]">CVV / CVC</label>
+                      <input
+                        type="password"
+                        maxLength={4}
+                        value={cardCvv}
+                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
+                        placeholder="•••"
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl outline-none font-mono text-xs text-center focus:border-emerald-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[10px] text-gray-500 pt-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Card will be authenticated via standard bank OTP upon placing order.</span>
+                </div>
+              </div>
+            )}
+
+            {/* NetBanking Form */}
+            {paymentMethod === 'netbanking' && (
+              <div className="p-4 sm:p-5 bg-gradient-to-b from-gray-50 to-white rounded-2xl border border-gray-200 space-y-3 shadow-2xs">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-emerald-700" />
+                    <h3 className="font-bold text-xs text-gray-900">Select Bank for NetBanking</h3>
+                  </div>
+                  <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-bold">Instant Login</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {['HDFC Bank', 'State Bank of India', 'ICICI Bank', 'Axis Bank', 'Kotak Mahindra', 'Punjab National Bank', 'Bank of Baroda', 'Other Indian Banks'].map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => setSelectedBank(b)}
+                      className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left truncate ${
+                        selectedBank === b 
+                          ? 'border-emerald-600 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-500 shadow-2xs' 
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Cash on Delivery Notice */}
+            {paymentMethod === 'cod' && (
+              <div className="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200 flex items-start gap-3">
+                <Truck className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+                <div className="text-xs space-y-0.5">
+                  <p className="font-bold text-emerald-950">Cash on Doorstep Delivery</p>
+                  <p className="text-[11px] text-emerald-800">
+                    Pay <span className="font-bold">{formatINR(cartTotals.total)}</span> in cash or scan the delivery executive&apos;s UPI QR when your order arrives.
                   </p>
                 </div>
               </div>

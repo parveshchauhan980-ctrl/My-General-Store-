@@ -1,0 +1,44 @@
+{
+  "packageId": "com.mygeneralstore.kirana",
+  "host": "localhost",
+  "name": "My General Store - Indian Kirana & Grocery",
+  "launcherName": "GeneralStore",
+  "themeColor": "#065f46",
+  "themeColorDark": "#064e3b",
+  "navigationColor": "#065f46",
+  "navigationColorDark": "#064e3b",
+  "navigationDividerColor": "#00000000",
+  "navigationDividerColorDark": "#00000000",
+  "backgroundColor": "#065f46",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "/pwa-512x512.png",
+  "maskableIconUrl": "/pwa-maskable-512x512.png",
+  "appVersionCode": 1,
+  "appVersionName": "1.0.0",
+  "shortcuts": [
+    {
+      "name": "Order Groceries",
+      "short_name": "Groceries",
+      "url": "/?page=products",
+      "icon": "/pwa-192x192.png"
+    },
+    {
+      "name": "My Orders",
+      "short_name": "Orders",
+      "url": "/?page=my-orders",
+      "icon": "/pwa-192x192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  }
+}

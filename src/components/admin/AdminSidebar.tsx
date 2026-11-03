@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   AlertCircle
 } from 'lucide-react';
+import { PWAInstallButton } from '../common/PWAInstallButton.tsx';
 
 export const AdminSidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({ isOpen = false, onClose }) => {
   const { 
@@ -135,6 +136,10 @@ export const AdminSidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> 
             <ExternalLink className="w-4 h-4 text-emerald-400" />
             <span>Customer Website</span>
           </button>
+
+          <div className="pt-1.5">
+            <PWAInstallButton variant="footer" customLabel="📱 Android APK & App Center" />
+          </div>
         </div>
       </nav>
 

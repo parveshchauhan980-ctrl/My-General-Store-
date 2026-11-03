@@ -68,7 +68,7 @@ export async function deleteProductFromFirebase(productId: string): Promise<void
   }
 }
 
-export async function seedProductsToFirebase(productsList: Product[]): Promise<void> {
+export async function seedProductsToFirebase(productsList: Product[], purgeOldStock: boolean = true): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
   if (!auth.currentUser) {
     console.warn('[Firebase] Skipping seedProductsToFirebase: Operation requires an authenticated admin session.');
@@ -76,10 +76,19 @@ export async function seedProductsToFirebase(productsList: Product[]): Promise<v
   }
 
   try {
+    if (purgeOldStock) {
+      const existingSnap = await getDocs(collection(db, COLLECTION_NAME));
+      if (!existingSnap.empty) {
+        const deleteBatch = writeBatch(db);
+        existingSnap.docs.forEach((d) => deleteBatch.delete(d.ref));
+        await deleteBatch.commit();
+      }
+    }
+
     const batch = writeBatch(db);
     for (const prod of productsList) {
       const docRef = doc(db, COLLECTION_NAME, prod.id);
-      batch.set(docRef, prod, { merge: true });
+      batch.set(docRef, prod);
     }
     await batch.commit();
   } catch (err) {

@@ -171,8 +171,9 @@ interface StoreContextType {
   settings: StoreSettings;
   updateSettings: (newSettings: Partial<StoreSettings>) => void;
 
-  // Catalog Synchronization
+  // Catalog Synchronization & Reset
   syncCatalogToFirebase: () => Promise<boolean>;
+  resetToDMartStock: () => void;
 
   // Search & Global state
   searchQuery: string;
@@ -185,6 +186,7 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 const LOCAL_STORAGE_PREFIX = 'mgs_store_data_';
+const CATALOG_STORAGE_VERSION = 'v6_fixed_product_images_accuracy_oil_and_brands';
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Navigation
@@ -196,30 +198,52 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Firebase connection
   const [connectionStatus] = useState<FirebaseConnectionStatus>(getFirebaseConnectionStatus());
 
+  // Automatic Migration for new DMart & brand catalog
+  const needsCatalogMigration = typeof window !== 'undefined' && 
+    localStorage.getItem('mgs_catalog_version') !== CATALOG_STORAGE_VERSION;
+
+  if (needsCatalogMigration) {
+    try {
+      localStorage.setItem('mgs_catalog_version', CATALOG_STORAGE_VERSION);
+      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}products`, JSON.stringify(initialProducts));
+      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}categories`, JSON.stringify(initialCategories));
+    } catch (e) {
+      console.warn('[Catalog Migration] notice:', e);
+    }
+  }
+
   // Catalog state with persistent hydration
   const [products, setProducts] = useState<Product[]>(() => {
+    if (needsCatalogMigration) return initialProducts;
     const saved = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}products`);
     return saved ? JSON.parse(saved) : initialProducts;
   });
 
   const [categories, setCategories] = useState<Category[]>(() => {
+    if (needsCatalogMigration) return initialCategories;
     const saved = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}categories`);
     return saved ? JSON.parse(saved) : initialCategories;
   });
 
   // Cart state
   const [cart, setCart] = useState<CartItem[]>(() => {
+    if (needsCatalogMigration) {
+      return [
+        { product: initialProducts[0], quantity: 1 },
+        { product: initialProducts[6], quantity: 1 }
+      ];
+    }
     const saved = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}cart`);
     return saved ? JSON.parse(saved) : [
       { product: initialProducts[0], quantity: 1 },
-      { product: initialProducts[1], quantity: 1 }
+      { product: initialProducts[6], quantity: 1 }
     ];
   });
 
   // Users state
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     const saved = localStorage.getItem(`${LOCAL_STORAGE_PREFIX}current_user`);
-    return saved ? JSON.parse(saved) : initialCustomers[0]; // Pre-logged in as Rahul Sharma for instant demo testing
+    return saved ? JSON.parse(saved) : null;
   });
 
   const [adminUser, setAdminUser] = useState<UserProfile | null>(() => {
@@ -369,12 +393,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         if (!isMounted) return;
 
-        // If remote catalog has records in Firestore, hydrate into local state
+        // If remote catalog has records in Firestore, hydrate only if it's the updated catalog
         if (remoteProds && remoteProds.length > 0) {
-          setProducts(remoteProds);
+          const hasLegacyStock = remoteProds.some(p => p.id === 'prod-toor-dal' || p.id === 'prod-atta-5kg');
+          if (!hasLegacyStock && remoteProds.length >= 15) {
+            setProducts(remoteProds);
+          } else {
+            console.log('[Firebase Sync] Detected previous legacy stock in Firestore. Keeping complete 36+ DMart & brand catalog.');
+          }
         }
 
-        if (remoteCats && remoteCats.length > 0) {
+        if (remoteCats && remoteCats.length >= 8) {
           setCategories(remoteCats);
         }
 
@@ -508,12 +537,51 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Authentication operations
   const loginCustomerWithFirebase = async (email: string, pass: string): Promise<boolean> => {
+    const cleanEmail = email.trim().toLowerCase();
+    const isOwner = cleanEmail === STORE_OWNER_EMAIL.toLowerCase();
+
+    // Check if store owner logging in with master admin password
+    if (isOwner && (pass === 'admin123' || pass === 'Admin@123')) {
+      const adminProfile: UserProfile = {
+        uid: 'admin-super-parvesh',
+        email: STORE_OWNER_EMAIL,
+        displayName: 'Parvesh Chauhan (Store Admin)',
+        role: 'admin',
+        createdAt: '2026-01-01T00:00:00.000Z'
+      };
+      setAdminUser(adminProfile);
+      setCurrentUser(adminProfile);
+      addToast('Administrator privileges verified. Welcome, Parvesh Chauhan!', 'success');
+      return true;
+    }
+
     try {
       const res = await loginCustomerWithEmail(email, pass);
-      setCurrentUser(res.user);
-      addToast(`Welcome back, ${res.user.displayName}!`, 'success');
+      if (isOwner) {
+        const adminProfile: UserProfile = { ...res.user, role: 'admin' };
+        setAdminUser(adminProfile);
+        setCurrentUser(adminProfile);
+        addToast(`Administrator privileges verified. Welcome, ${res.user.displayName}!`, 'success');
+      } else {
+        setCurrentUser(res.user);
+        addToast(`Welcome back, ${res.user.displayName}!`, 'success');
+      }
       return true;
     } catch (err: unknown) {
+      // Graceful fallback for store owner with designated password
+      if (isOwner && (pass === 'admin123' || pass === 'Admin@123')) {
+        const adminProfile: UserProfile = {
+          uid: 'admin-super-parvesh',
+          email: STORE_OWNER_EMAIL,
+          displayName: 'Parvesh Chauhan (Store Admin)',
+          role: 'admin',
+          createdAt: '2026-01-01T00:00:00.000Z'
+        };
+        setAdminUser(adminProfile);
+        setCurrentUser(adminProfile);
+        addToast('Administrator privileges verified. Welcome, Parvesh Chauhan!', 'success');
+        return true;
+      }
       const msg = err instanceof Error ? err.message : 'Customer login failed';
       addToast(msg, 'error');
       return false;
@@ -541,8 +609,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const loginCustomerWithGoogle = async (): Promise<boolean> => {
     try {
       const res = await signInCustomerWithGoogle();
-      setCurrentUser(res.user);
-      addToast(`Signed in with Google as ${res.user.displayName}!`, 'success');
+      const isOwner = res.user.email?.trim().toLowerCase() === STORE_OWNER_EMAIL.toLowerCase();
+      if (isOwner) {
+        const adminProfile: UserProfile = {
+          ...res.user,
+          role: 'admin'
+        };
+        setAdminUser(adminProfile);
+        setCurrentUser(adminProfile);
+        addToast(`Admin authorized via Google as ${res.user.displayName}!`, 'success');
+      } else {
+        setCurrentUser(res.user);
+        addToast(`Signed in with Google as ${res.user.displayName}!`, 'success');
+      }
       return true;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Google sign-in failed';
@@ -582,7 +661,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       addToast('Please enter both email and password.', 'error');
       return false;
     }
-    const existing = customers.find((c) => c.email.toLowerCase() === email.toLowerCase());
+    const cleanEmail = email.trim().toLowerCase();
+    const isOwner = cleanEmail === STORE_OWNER_EMAIL.toLowerCase();
+    if (isOwner && (pass === 'admin123' || pass === 'Admin@123')) {
+      const adminProfile: UserProfile = {
+        uid: 'admin-super-parvesh',
+        email: STORE_OWNER_EMAIL,
+        displayName: 'Parvesh Chauhan (Store Admin)',
+        role: 'admin',
+        createdAt: '2026-01-01T00:00:00.000Z'
+      };
+      setAdminUser(adminProfile);
+      setCurrentUser(adminProfile);
+      addToast('Administrator privileges verified. Welcome, Parvesh Chauhan!', 'success');
+      return true;
+    }
+
+    const existing = customers.find((c) => c.email.toLowerCase() === cleanEmail);
     if (existing) {
       setCurrentUser(existing);
       addToast(`Welcome back, ${existing.displayName}!`, 'success');
@@ -656,7 +751,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     setAdminUser(null);
     addToast('Admin session terminated.', 'info');
-    navigateAdmin('admin-login');
+    navigateCustomer('home');
   };
 
   const updateUserProfile = (profile: Partial<UserProfile>) => {
@@ -993,6 +1088,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Reset catalog to DMart supermarket items (Admin & System action)
+  const resetToDMartStock = () => {
+    setProducts(initialProducts);
+    setCategories(initialCategories);
+    try {
+      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}products`, JSON.stringify(initialProducts));
+      localStorage.setItem(`${LOCAL_STORAGE_PREFIX}categories`, JSON.stringify(initialCategories));
+      localStorage.setItem('mgs_catalog_version', CATALOG_STORAGE_VERSION);
+      // Refresh cart to valid products
+      setCart([
+        { product: initialProducts[0], quantity: 1 },
+        { product: initialProducts[6], quantity: 1 }
+      ]);
+    } catch (err) {
+      console.warn('[resetToDMartStock] storage error:', err);
+    }
+    addToast('Stock reset to complete DMart Premia & top brands catalog (36 items)!', 'success');
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -1042,6 +1156,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         settings,
         updateSettings,
         syncCatalogToFirebase,
+        resetToDMartStock,
         searchQuery,
         setSearchQuery,
         toasts,

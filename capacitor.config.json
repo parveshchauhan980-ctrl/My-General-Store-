@@ -1,0 +1,9 @@
+{
+  "appId": "com.mygeneralstore.kirana",
+  "appName": "My General Store",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

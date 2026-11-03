@@ -12,9 +12,10 @@ import {
   Heart,
   Lock
 } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton.tsx';
 
 export const Footer: React.FC = () => {
-  const { navigateCustomer, navigateAdmin, settings, categories } = useStore();
+  const { navigateCustomer, navigateAdmin, settings, categories, adminUser } = useStore();
 
   return (
     <footer className="bg-emerald-950 text-white mt-16 pt-12 pb-8 border-t border-emerald-900">
@@ -126,6 +127,9 @@ export const Footer: React.FC = () => {
                 My Account Profile
               </button>
             </li>
+            <li className="pt-1">
+              <PWAInstallButton variant="footer" customLabel="📱 Android APK & Mobile App" />
+            </li>
           </ul>
         </div>
 
@@ -146,24 +150,17 @@ export const Footer: React.FC = () => {
           </ul>
         </div>
 
-        {/* Backoffice & Store Management */}
+        {/* Fast Delivery & Serviceable Pincodes */}
         <div>
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-3">Store Administration</h3>
-          <p className="text-[11px] text-emerald-300 mb-3">
-            Backoffice management suite for inventory, catalog, order approvals, and sales reporting.
+          <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-3">Doorstep Delivery</h3>
+          <p className="text-[11px] text-emerald-200 leading-relaxed mb-3">
+            Fresh, pure staples delivered directly to your doorstep. Free delivery on orders over ₹{settings.freeDeliveryThreshold}.
           </p>
-          <button
-            onClick={() => navigateAdmin('admin-dashboard')}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-emerald-800 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold border border-emerald-700 transition-colors"
-          >
-            <Lock className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Open Admin Panel</span>
-          </button>
-          <div className="mt-4 p-2.5 rounded-lg bg-emerald-900/60 border border-emerald-800 text-[11px] text-emerald-300">
-            <span className="font-semibold text-white">Store Pincodes Served:</span>
-            <div className="mt-1 flex flex-wrap gap-1">
+          <div className="p-3 rounded-xl bg-emerald-900/60 border border-emerald-800 text-[11px] text-emerald-300">
+            <span className="font-semibold text-white block mb-1">Serviceable Pincodes:</span>
+            <div className="flex flex-wrap gap-1">
               {settings.deliveryPincodes.map((pin) => (
-                <span key={pin} className="px-1.5 py-0.5 bg-emerald-950 rounded text-[10px] font-mono">
+                <span key={pin} className="px-1.5 py-0.5 bg-emerald-950 text-emerald-300 rounded text-[10px] font-mono">
                   {pin}
                 </span>
               ))}

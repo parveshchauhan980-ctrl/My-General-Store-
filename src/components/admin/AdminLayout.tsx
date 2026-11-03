@@ -44,10 +44,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => 
 
           <div className="mt-6 space-y-2">
             <button
-              onClick={() => navigateAdmin('admin-login')}
+              onClick={() => navigateCustomer('login')}
               className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
             >
-              Sign In to Admin Portal
+              Sign In to Your Account
             </button>
             <button
               onClick={() => navigateCustomer('home')}

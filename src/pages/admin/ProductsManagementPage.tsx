@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext.tsx';
 import type { Product } from '../../types/index.ts';
 import { formatINR } from '../../utils/calculations.ts';
+import { ProductImageStudioModal } from '../../components/admin/ProductImageStudioModal.tsx';
 import { 
   Plus, 
   Search, 
@@ -14,7 +15,11 @@ import {
   Boxes,
   CheckCircle2,
   Database,
-  RefreshCw
+  RefreshCw,
+  Sparkles,
+  RotateCcw,
+  Tag,
+  Wand2
 } from 'lucide-react';
 
 export const ProductsManagementPage: React.FC = () => {
@@ -26,10 +31,12 @@ export const ProductsManagementPage: React.FC = () => {
     deleteProduct, 
     restockProduct,
     syncCatalogToFirebase,
+    resetToDMartStock,
     addToast 
   } = useStore();
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isImageStudioOpen, setIsImageStudioOpen] = useState(false);
 
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -168,7 +175,29 @@ export const ProductsManagementPage: React.FC = () => {
           <p className="text-xs text-gray-500 mt-0.5">Manage store grocery catalog, pricing, units, and inventory</p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => {
+              if (window.confirm('Remove previous stock and reset to complete 36+ DMart Premia and top brand grocery catalog?')) {
+                resetToDMartStock();
+              }
+            }}
+            title="Remove before stock and load fresh DMart supermarket catalog"
+            className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs rounded-xl shadow-xs transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
+            <span>Reset to DMart Stock</span>
+          </button>
+
+          <button
+            onClick={() => setIsImageStudioOpen(true)}
+            title="Open AI Product Image Studio & Generator"
+            className="flex items-center gap-1.5 px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-300 font-bold text-xs rounded-xl shadow-xs transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+            <span>AI Image Studio</span>
+          </button>
+
           <button
             onClick={async () => {
               setIsSyncing(true);
@@ -177,18 +206,18 @@ export const ProductsManagementPage: React.FC = () => {
             }}
             disabled={isSyncing}
             title="Push local catalog items to Firestore cloud database (Requires Admin login)"
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-xs rounded-xl shadow-xs transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-xs rounded-xl shadow-xs transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            <span>{isSyncing ? 'Syncing...' : 'Sync with Firestore'}</span>
+            <span>{isSyncing ? 'Syncing...' : 'Sync Firestore'}</span>
           </button>
 
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>Add New Product</span>
+            <span>Add Product</span>
           </button>
         </div>
       </div>
@@ -247,10 +276,18 @@ export const ProductsManagementPage: React.FC = () => {
                         <img
                           src={p.image}
                           alt={p.name}
-                          className="w-10 h-10 rounded-lg object-cover bg-gray-50 shrink-0"
+                          referrerPolicy="no-referrer"
+                          className="w-10 h-10 rounded-lg object-cover bg-gray-50 shrink-0 border border-gray-100"
                         />
                         <div>
-                          <p className="font-bold text-gray-900 leading-snug">{p.name}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-gray-900 leading-snug">{p.name}</p>
+                            {p.brand === 'DMart Premia' && (
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-extrabold tracking-wide uppercase shrink-0">
+                                Premia
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2 text-[10px] text-gray-500">
                             <span className="font-semibold text-emerald-800 uppercase">{p.brand}</span>
                             {p.hindiName && <span>• {p.hindiName}</span>}
@@ -269,8 +306,15 @@ export const ProductsManagementPage: React.FC = () => {
                     <td className="px-4 py-3 text-gray-400 line-through">
                       {formatINR(p.mrp)}
                     </td>
-                    <td className="px-4 py-3 font-extrabold text-emerald-950">
-                      {formatINR(p.price)}
+                    <td className="px-4 py-3">
+                      <span className="font-extrabold text-emerald-950 block">
+                        {formatINR(p.price)}
+                      </span>
+                      {p.mrp > p.price && (
+                        <span className="text-[10px] text-emerald-700 font-semibold leading-none">
+                          Save {formatINR(p.mrp - p.price)}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -454,13 +498,38 @@ export const ProductsManagementPage: React.FC = () => {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-gray-700 font-semibold mb-1">Image URL</label>
-                  <input
-                    type="url"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-emerald-500 font-mono text-[11px]"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-gray-700 font-semibold">Product Image URL *</label>
+                    <button
+                      type="button"
+                      onClick={() => setIsImageStudioOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg text-[11px] font-bold transition-colors"
+                    >
+                      <Sparkles className="w-3 h-3 text-purple-600" />
+                      <span>AI Generator & DMart Studio</span>
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden shrink-0">
+                      <img
+                        src={formData.image}
+                        alt="Preview"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                    <input
+                      type="url"
+                      required
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      placeholder="https://images.unsplash.com/..."
+                      className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-emerald-500 font-mono text-[11px]"
+                    />
+                  </div>
                 </div>
 
                 <div className="sm:col-span-2">
@@ -556,6 +625,19 @@ export const ProductsManagementPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* AI Product Image Studio Modal */}
+      <ProductImageStudioModal
+        isOpen={isImageStudioOpen}
+        onClose={() => setIsImageStudioOpen(false)}
+        onSelectImage={(newUrl) => {
+          setFormData((prev) => ({ ...prev, image: newUrl }));
+          addToast('Product image updated from AI Studio!', 'success');
+        }}
+        initialProductName={formData.name || (editingProduct ? editingProduct.name : '')}
+        initialBrand={formData.brand || (editingProduct ? editingProduct.brand : 'DMart Premia')}
+        initialCategory={categories.find(c => c.id === formData.categoryId)?.name || 'Dals & Pulses'}
+      />
     </div>
   );
 };

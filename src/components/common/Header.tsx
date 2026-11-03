@@ -16,12 +16,14 @@ import {
   Percent
 } from 'lucide-react';
 import { formatINR } from '../../utils/calculations.ts';
+import { PWAInstallButton } from './PWAInstallButton.tsx';
 
 export const Header: React.FC = () => {
   const { 
     cart, 
     cartTotals, 
     currentUser, 
+    adminUser,
     logoutCustomer, 
     navigateCustomer, 
     navigateAdmin, 
@@ -58,16 +60,6 @@ export const Header: React.FC = () => {
               <Percent className="w-3.5 h-3.5" />
               <span>Free Delivery above ₹{settings.freeDeliveryThreshold}</span>
             </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigateAdmin('admin-dashboard')}
-              className="flex items-center gap-1.5 bg-emerald-800 hover:bg-emerald-700 text-emerald-100 hover:text-white px-2.5 py-1 rounded text-[11px] font-semibold transition-all border border-emerald-700/60"
-            >
-              <Shield className="w-3 h-3 text-emerald-300" />
-              <span>Admin Backoffice</span>
-            </button>
           </div>
         </div>
       </div>
@@ -183,6 +175,18 @@ export const Header: React.FC = () => {
                     <PackageCheck className="w-3.5 h-3.5" />
                     <span>My Orders</span>
                   </button>
+                  {adminUser && (
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        navigateAdmin('admin-dashboard');
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs text-amber-700 bg-amber-50/60 hover:bg-amber-100 flex items-center gap-2.5 font-bold"
+                    >
+                      <Shield className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Admin Dashboard</span>
+                    </button>
+                  )}
                   <div className="border-t border-gray-100 my-1"></div>
                   <button
                     onClick={() => {
@@ -213,6 +217,9 @@ export const Header: React.FC = () => {
               </button>
             </div>
           )}
+
+          {/* Mobile App Install Button */}
+          <PWAInstallButton variant="header" />
 
           {/* Cart Button */}
           <button
@@ -303,6 +310,10 @@ export const Header: React.FC = () => {
             <MapPin className="w-4 h-4 text-emerald-600" />
             <span>Delivering in Gurugram, Delhi, NCR & major pincodes</span>
           </div>
+
+          {/* Mobile Install App Button */}
+          <PWAInstallButton variant="mobile" />
+
           <button
             onClick={() => { setMobileMenuOpen(false); navigateCustomer('home'); }}
             className="w-full text-left py-2 px-3 text-sm font-medium text-gray-800 hover:bg-gray-50 rounded-md"
@@ -342,15 +353,15 @@ export const Header: React.FC = () => {
           >
             My Profile
           </button>
-          <div className="pt-2 border-t border-gray-100">
+          {adminUser && (
             <button
               onClick={() => { setMobileMenuOpen(false); navigateAdmin('admin-dashboard'); }}
-              className="w-full py-2.5 px-3 bg-emerald-900 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2"
+              className="w-full text-left py-2 px-3 text-sm font-semibold text-amber-700 bg-amber-50/60 hover:bg-amber-100 rounded-md flex items-center gap-2"
             >
-              <Shield className="w-4 h-4 text-emerald-300" />
-              <span>Switch to Admin Panel</span>
+              <Shield className="w-4 h-4 text-amber-600" />
+              <span>Admin Dashboard</span>
             </button>
-          </div>
+          )}
         </div>
       )}
     </header>

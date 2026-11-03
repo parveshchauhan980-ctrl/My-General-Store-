@@ -59,6 +59,33 @@ export const ProductDetailsPage: React.FC = () => {
     .filter((p) => p.categoryId === product.categoryId && p.id !== product.id)
     .slice(0, 4);
 
+  const getFallbackImage = () => {
+    switch (product.categoryId) {
+      case 'cat-ghee-oil':
+        return 'https://images.unsplash.com/photo-1510627498534-cf7e9002facc?w=600&auto=format&fit=crop&q=80';
+      case 'cat-dals':
+        return 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80';
+      case 'cat-atta':
+        return 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80';
+      case 'cat-rice':
+        return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80';
+      case 'cat-spices':
+        return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80';
+      case 'cat-snacks':
+        return 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80';
+      case 'cat-tea':
+        return 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80';
+      case 'cat-dry-fruits':
+        return 'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?w=600&auto=format&fit=crop&q=80';
+      case 'cat-cleaning':
+        return 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600&auto=format&fit=crop&q=80';
+      case 'cat-personal-care':
+        return 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80';
+      default:
+        return 'https://images.unsplash.com/photo-1510627498534-cf7e9002facc?w=600&auto=format&fit=crop&q=80';
+    }
+  };
+
   return (
     <div className="space-y-10">
       {/* Navigation Breadcrumb */}
@@ -85,11 +112,15 @@ export const ProductDetailsPage: React.FC = () => {
             <img
               src={product.image}
               alt={product.name}
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = getFallbackImage();
+              }}
               className="w-full h-full object-cover"
             />
             {discountPercent > 0 && (
               <span className="absolute top-4 left-4 bg-emerald-600 text-white font-extrabold text-xs px-3 py-1 rounded-full shadow-md">
-                {discountPercent}% OFF
+                {discountPercent}% OFF • DMart Price
               </span>
             )}
             {isOutOfStock ? (

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext.tsx';
-import { ShoppingBag, Lock, Mail, ArrowRight, UserCheck, Shield } from 'lucide-react';
+import { STORE_OWNER_EMAIL } from '../../services/firebase/auth.ts';
+import { auth } from '../../services/firebase/config.ts';
+import { ShoppingBag, Lock, Mail, ArrowRight, UserCheck } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { 
@@ -8,7 +10,8 @@ export const LoginPage: React.FC = () => {
     loginCustomerWithGoogle, 
     loginCustomer, 
     navigateCustomer, 
-    navigateAdmin 
+    navigateAdmin,
+    adminUser
   } = useStore();
 
   const [email, setEmail] = useState('');
@@ -21,7 +24,11 @@ export const LoginPage: React.FC = () => {
     const success = await loginCustomerWithFirebase(email, password);
     setLoading(false);
     if (success) {
-      navigateCustomer('home');
+      if (email.trim().toLowerCase() === STORE_OWNER_EMAIL.toLowerCase()) {
+        navigateAdmin('admin-dashboard');
+      } else {
+        navigateCustomer('home');
+      }
     }
   };
 
@@ -30,13 +37,23 @@ export const LoginPage: React.FC = () => {
     const success = await loginCustomerWithGoogle();
     setLoading(false);
     if (success) {
-      navigateCustomer('home');
+      if (adminUser || auth.currentUser?.email?.toLowerCase() === STORE_OWNER_EMAIL.toLowerCase()) {
+        navigateAdmin('admin-dashboard');
+      } else {
+        navigateCustomer('home');
+      }
     }
   };
 
   const handleQuickDemoLogin = (demoEmail: string) => {
-    loginCustomer(demoEmail, 'kirana123');
-    navigateCustomer('home');
+    const success = loginCustomer(demoEmail, 'kirana123');
+    if (success) {
+      if (demoEmail.trim().toLowerCase() === STORE_OWNER_EMAIL.toLowerCase()) {
+        navigateAdmin('admin-dashboard');
+      } else {
+        navigateCustomer('home');
+      }
+    }
   };
 
   return (
@@ -46,9 +63,9 @@ export const LoginPage: React.FC = () => {
           <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-xs">
             <ShoppingBag className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight">Customer Login</h1>
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">Sign In to Your Account</h1>
           <p className="text-xs text-gray-500">
-            Sign in to track orders, manage delivery addresses, and save favorites
+            Sign in to track orders, manage delivery addresses, and view your account
           </p>
         </div>
 
@@ -124,7 +141,7 @@ export const LoginPage: React.FC = () => {
             disabled={loading}
             className="w-full py-3 px-4 bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-300 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
           >
-            <span>{loading ? 'Authenticating...' : 'Sign In as Customer'}</span>
+            <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
@@ -152,17 +169,6 @@ export const LoginPage: React.FC = () => {
             className="font-bold text-emerald-700 hover:underline"
           >
             Register Here
-          </button>
-        </div>
-
-        {/* Switch to Admin */}
-        <div className="pt-4 border-t border-gray-100 text-center">
-          <button
-            onClick={() => navigateAdmin('admin-login')}
-            className="text-[11px] text-gray-400 hover:text-emerald-800 flex items-center justify-center gap-1 mx-auto font-medium"
-          >
-            <Shield className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Store Manager / Admin Login Portal →</span>
           </button>
         </div>
       </div>

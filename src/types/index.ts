@@ -142,6 +142,9 @@ export interface StoreSettings {
   taxRatePercentage: number;
   upiId: string;
   upiName: string;
+  upiQrImageUrl?: string;
+  upiDisplayMode?: 'dynamic' | 'custom_image' | 'both';
+  youpiPgEndpoint?: string;
   openingTime: string;
   closingTime: string;
   isStoreOpen: boolean;

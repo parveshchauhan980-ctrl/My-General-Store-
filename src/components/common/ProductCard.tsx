@@ -23,6 +23,33 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     navigateCustomer('product-details', { productId: product.id });
   };
 
+  const getFallbackImage = () => {
+    switch (product.categoryId) {
+      case 'cat-ghee-oil':
+        return 'https://images.unsplash.com/photo-1510627498534-cf7e9002facc?w=600&auto=format&fit=crop&q=80';
+      case 'cat-dals':
+        return 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80';
+      case 'cat-atta':
+        return 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80';
+      case 'cat-rice':
+        return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80';
+      case 'cat-spices':
+        return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80';
+      case 'cat-snacks':
+        return 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=80';
+      case 'cat-tea':
+        return 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80';
+      case 'cat-dry-fruits':
+        return 'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?w=600&auto=format&fit=crop&q=80';
+      case 'cat-cleaning':
+        return 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600&auto=format&fit=crop&q=80';
+      case 'cat-personal-care':
+        return 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&auto=format&fit=crop&q=80';
+      default:
+        return 'https://images.unsplash.com/photo-1510627498534-cf7e9002facc?w=600&auto=format&fit=crop&q=80';
+    }
+  };
+
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-900/5 transition-all duration-200 flex flex-col overflow-hidden relative">
       {/* Top Badges */}
@@ -53,8 +80,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <img
           src={product.image}
           alt={product.name}
+          referrerPolicy="no-referrer"
           onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80';
+            (e.currentTarget as HTMLImageElement).src = getFallbackImage();
           }}
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
@@ -65,9 +93,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="p-3.5 flex flex-col flex-1">
         {/* Brand & Hindi Name */}
         <div className="flex items-center justify-between text-[11px] mb-1">
-          <span className="font-semibold text-emerald-800 uppercase tracking-wider text-[10px]">
-            {product.brand}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-emerald-800 uppercase tracking-wider text-[10px]">
+              {product.brand}
+            </span>
+            {product.brand === 'DMart Premia' && (
+              <span className="bg-emerald-100 text-emerald-800 font-extrabold text-[9px] px-1.5 py-0.2 rounded uppercase">
+                Premia
+              </span>
+            )}
+          </div>
           {product.hindiName && (
             <span className="text-gray-500 font-medium text-[11px] truncate max-w-[120px]">
               {product.hindiName}
@@ -109,8 +144,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               )}
             </div>
             {product.mrp > product.price && (
-              <span className="text-[10px] text-emerald-700 font-semibold block leading-none">
-                Save {formatINR(product.mrp - product.price)}
+              <span className="text-[10px] text-emerald-700 font-bold block leading-none">
+                DMart Price • Save {formatINR(product.mrp - product.price)}
               </span>
             )}
           </div>

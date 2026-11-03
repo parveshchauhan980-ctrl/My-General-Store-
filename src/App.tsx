@@ -1,6 +1,5 @@
 import React from 'react';
 import { StoreProvider, useStore } from './context/StoreContext.tsx';
-import { BackendStatusBanner } from './components/common/BackendStatusBanner.tsx';
 import { Header } from './components/common/Header.tsx';
 import { Footer } from './components/common/Footer.tsx';
 import { ToastContainer } from './components/common/ToastContainer.tsx';
@@ -131,7 +130,6 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fbfdfa] text-gray-800">
-      <BackendStatusBanner />
       <Header />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 sm:py-8">
         {renderCustomerPage()}

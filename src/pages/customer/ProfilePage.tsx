@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext.tsx';
 import { User, Mail, Phone, MapPin, Save, LogOut, PackageCheck } from 'lucide-react';
+import { PWAInstallButton } from '../../components/common/PWAInstallButton.tsx';
 
 export const ProfilePage: React.FC = () => {
   const { currentUser, updateUserProfile, logoutCustomer, navigateCustomer, orders } = useStore();
@@ -204,6 +205,19 @@ export const ProfilePage: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {/* Mobile App Download & Installation Card */}
+      <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-3xl p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-bold text-emerald-950 flex items-center gap-2">
+            <span>📱 Install My General Store on Your Phone</span>
+          </h3>
+          <p className="text-xs text-emerald-800 mt-1">
+            Install on Android (APK/WebAPK) or iPhone for 1-tap ordering, fast checkout, and push updates.
+          </p>
+        </div>
+        <PWAInstallButton variant="header" />
+      </div>
     </div>
   );
 };

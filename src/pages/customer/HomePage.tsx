@@ -19,6 +19,7 @@ export const HomePage: React.FC = () => {
   const { products, categories, navigateCustomer, settings } = useStore();
 
   const featuredProducts = products.filter((p) => p.isFeatured || p.rating >= 4.8).slice(0, 8);
+  const dmartPremiaProducts = products.filter((p) => p.brand === 'DMart Premia').slice(0, 4);
   const bestDalsAndAtta = products.filter((p) => p.categoryId === 'cat-dals' || p.categoryId === 'cat-atta').slice(0, 4);
 
   return (
@@ -162,6 +163,38 @@ export const HomePage: React.FC = () => {
           ))}
         </div>
       </section>
+
+      {/* DMart Premia Super Saver Spotlight */}
+      {dmartPremiaProducts.length > 0 && (
+        <section className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-white rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-800/80 border border-emerald-600/40 text-emerald-200 text-xs font-bold mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>DMart Exclusive Savings</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-white">
+                DMart Premia Quality Collection
+              </h3>
+              <p className="text-xs sm:text-sm text-emerald-200/80 mt-1">
+                Highest purity pulses, grains, pure ghee, and dry fruits tested in certified food labs at direct factory pricing.
+              </p>
+            </div>
+            <button
+              onClick={() => navigateCustomer('products')}
+              className="self-start sm:self-auto px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-black text-xs rounded-xl shadow-lg transition-all"
+            >
+              Shop DMart Premia
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {dmartPremiaProducts.map((prod) => (
+              <ProductCard key={prod.id} product={prod} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Atta & Dals Section Banner */}
       <section className="bg-emerald-50 rounded-2xl border border-emerald-100 p-6 md:p-8 space-y-6">
